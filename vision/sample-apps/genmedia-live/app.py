@@ -1290,11 +1290,20 @@ def handle_extract_frame(args, session_id):
     timestamp = args.get("timestamp", 0)
 
     try:
-        video_path = Path(f"outputs/videos/video_{video_id}.mp4")
+        # Constrain all video paths to the outputs/videos directory
+        video_root = Path("outputs/videos").resolve()
+        video_path = (video_root / f"video_{video_id}.mp4").resolve()
         if not video_path.exists():
             for f in file_history:
                 if f.get("type") == "video" and f.get("id") == video_id:
-                    video_path = Path(f["path"])
+                    candidate_path = Path(f["path"]).resolve()
+                    try:
+                        # Ensure the candidate path is within the expected root
+                        candidate_path.relative_to(video_root)
+                    except ValueError:
+                        # Path escapes the allowed root; ignore it
+                        continue
+                    video_path = candidate_path
                     break
 
         if not video_path.exists():
