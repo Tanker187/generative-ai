@@ -28,6 +28,9 @@ import traceback
 from pathlib import Path
 
 import google.auth
+
+# Base directory for generated images
+BASE_IMAGE_DIR = Path("outputs") / "images"
 from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 from flask_socketio import SocketIO, emit
@@ -1159,6 +1162,8 @@ def handle_video_generation(args, session_id):
     image_id = args.get("image_id")
     if image_id is not None:
         image_id = int(image_id)
+        if image_id < 0:
+            return jsonify({"error": "Invalid image_id"}), 400
 
     if duration <= 4:
         duration = 4
@@ -1171,13 +1176,13 @@ def handle_video_generation(args, session_id):
         reference_image = None
 
         if image_id:
-            img_path = Path(f"outputs/images/image_{image_id}.png")
+            img_path = BASE_IMAGE_DIR / f"image_{image_id}.png"
             if img_path.exists():
                 reference_image = img_path
         elif refers_to_last:
             last_id = get_last_id_for_type("image", session_id)
             if last_id:
-                img_path = Path(f"outputs/images/image_{last_id}.png")
+                img_path = BASE_IMAGE_DIR / f"image_{last_id}.png"
                 if img_path.exists():
                     reference_image = img_path
 
