@@ -1295,6 +1295,14 @@ def handle_extract_frame(args, session_id):
     timestamp = args.get("timestamp", 0)
 
     try:
+        # Validate and normalize the timestamp to prevent unsafe values
+        try:
+            safe_timestamp = float(timestamp)
+        except (TypeError, ValueError):
+            return jsonify({"error": "Invalid timestamp value"}), 400
+        if safe_timestamp < 0:
+            return jsonify({"error": "Timestamp must be non-negative"}), 400
+
         # Constrain all video paths to the outputs/videos directory
         video_root = Path("outputs/videos").resolve()
         video_path = (video_root / f"video_{video_id}.mp4").resolve()
@@ -1323,7 +1331,7 @@ def handle_extract_frame(args, session_id):
             "ffmpeg",
             "-y",
             "-ss",
-            str(timestamp),
+            str(safe_timestamp),
             "-i",
             str(video_path),
             "-vframes",
