@@ -40,7 +40,26 @@ app.use(express.static(staticPath));
 app.get('/api/investments/search', async (req: express.Request, res: express.Response) => {
   try 
   {
-    const terms: string[] = req.query.terms as string[];
+    const rawTerms = req.query.terms;
+
+    let terms: string[] = [];
+
+    if (typeof rawTerms === 'string') {
+      // Allow comma-separated list or single term
+      terms = rawTerms
+        .split(',')
+        .map(t => t.trim())
+        .filter(t => t !== '');
+    } else if (Array.isArray(rawTerms)) {
+      terms = rawTerms
+        .map(t => (t != null ? String(t).trim() : ''))
+        .filter(t => t !== '');
+    }
+
+    if (!terms.length) {
+      res.status(400).send('Bad request: at least one non-empty search term is required.');
+      return;
+    }
 
     const response = await investments.search(terms);
     res.json(response);
