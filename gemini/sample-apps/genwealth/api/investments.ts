@@ -5,15 +5,25 @@ export class Investments {
 
     async search(searchTerms: string[]) {
         console.log('using searchTerms', searchTerms);
+
+        // Normalize and filter terms defensively
+        const normalizedTerms = (searchTerms || [])
+            .map(t => (t != null ? String(t).trim() : ''))
+            .filter(t => t !== '');
+
+        if (!normalizedTerms.length) {
+            // No usable search terms; return empty result set
+            return { data: [], query: '' };
+        }
+
         let query = `SELECT ticker, etf, rating, analysis
             FROM investments
-            WHERE analysis LIKE '%${safeString(searchTerms[0]) ?? ''}%'`;
+            WHERE analysis LIKE '%${safeString(normalizedTerms[0]) ?? ''}%'`;
         
-        for (let i = 1; i < searchTerms.length; i++) {
-            if (searchTerms[i].trim() !== '') {
-                query += `
-                    AND analysis LIKE '%${safeString(searchTerms[i]).trim()}%'`;
-            }
+        for (let i = 1; i < normalizedTerms.length; i++) {
+            const term = normalizedTerms[i];
+            query += `
+                    AND analysis LIKE '%${safeString(term)}%'`;
         }
         
         query += ` 
