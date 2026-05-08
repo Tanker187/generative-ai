@@ -14,7 +14,7 @@ dependencies = [
     "python-dotenv>=1.0.1",
     "seaborn>=0.13.2",
     "set-env-colab-kaggle-dotenv>=0.1.4",
-    "smolagents>=1.9.2",
+    "smolagents>=1.24.0",
     "weave>=0.51.34",
 ]
 
